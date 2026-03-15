@@ -18,14 +18,22 @@ app.set("view engine","ejs");
 app.use(express.static(path.join(__dirname,"public")));
 
 app.get("/",(req,res)=>{
-    res.render("index");
+    res.render("index",{title: "Chess Game"});
 });
 
 io.on("connection", function(uniquesocket)
 {
     console.log("connected");
+    uniquesocket.on("test-event",function(){
+        console.log("test-event received");
+        //broadcast event to all the connected clients
+        io.emit("test-event-received");
+    });
+    uniquesocket.on("disconnect",function(){
+        console.log("client disconnected");
+    });
 });
- 
+
 server.listen(3000,function(){
     console.log("listening on port 3000");
 });
