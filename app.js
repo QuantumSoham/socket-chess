@@ -24,13 +24,65 @@ app.get("/",(req,res)=>{
 io.on("connection", function(uniquesocket)
 {
     console.log("connected");
-    uniquesocket.on("test-event",function(){
-        console.log("test-event received");
-        //broadcast event to all the connected clients
-        io.emit("test-event-received");
-    });
+    // uniquesocket.on("test-event",function(){
+    //     console.log("test-event received");
+    //     //broadcast event to all the connected clients
+    //     io.emit("test-event-received");
+    // });
+    // uniquesocket.on("disconnect",function(){
+    //     console.log("client disconnected");
+    // });
+
+    if(!players.white)
+    {
+        players.white=uniquesocket.id;
+        uniquesocket.emit("playerRole","w");//chess js takes color as w or b
+    }
+    else if(!players.black)
+    {
+        players.black=uniquesocket.id;
+        uniquesocket.emit("playerRole","b");//chess js takes color as w or b
+    }
+    else
+    {
+        uniquesocket.emit("spectatorRole");
+    }
+
     uniquesocket.on("disconnect",function(){
-        console.log("client disconnected");
+        if(uniquesocket.id===players.white)
+        {
+            delete players.white;
+        }
+        else if(uniquesocket.id===players.black)
+        {
+            delete players.black;
+        }
+    });
+
+    uniquesocket.on("move",(move)=>{
+        try
+        {
+            if(chess.turn()==="w" && uniquesocket.id !== players.white)return;
+            if(chess.turn()==="b" && uniquesocket.id !== players.black)return;
+
+            const result=chess.move(move);
+            if(result)
+            {
+                currentPlayer=chess.turn();
+                io.emit("move",move);
+                io.emit("boardState",chess.fen())
+            }
+            else
+            {
+                console.log("Invalid move:",move);
+                uniquesocket.emit("invalidMove",move);
+            }
+        }
+        catch(err)
+        {
+            console.log(err);
+            uniquesocket.emit("Invalid move :",move);
+        }
     });
 });
 
