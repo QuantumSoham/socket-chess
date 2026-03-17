@@ -36,26 +36,35 @@ io.on("connection", function(uniquesocket)
     if(!players.white)
     {
         players.white=uniquesocket.id;
+        console.log(uniquesocket.id+" joined as player white");
         uniquesocket.emit("playerRole","w");//chess js takes color as w or b
     }
     else if(!players.black)
     {
         players.black=uniquesocket.id;
+        console.log(uniquesocket.id+" joined as player black");
         uniquesocket.emit("playerRole","b");//chess js takes color as w or b
     }
     else
     {
+        console.log(uniquesocket.id+" joined as a spectator");
         uniquesocket.emit("spectatorRole");
     }
 
     uniquesocket.on("disconnect",function(){
         if(uniquesocket.id===players.white)
         {
+            console.log(uniquesocket.id+"white player left the game");
             delete players.white;
         }
         else if(uniquesocket.id===players.black)
         {
+            console.log(uniquesocket.id+"black player left the game");
             delete players.black;
+        }
+        else
+        {
+            console.log(uniquesocket.id+"stopped spectating");
         }
     });
 
